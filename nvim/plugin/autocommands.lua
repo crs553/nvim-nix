@@ -121,6 +121,14 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
+vim.api.nvim_create_autocmd('BufWritePre', {
+  pattern = '*',
+  callback = function()
+    vim.lsp.buf.format { async = false }
+    require('conform').format { async = false }
+  end,
+})
+
 -- More examples, disabled by default
 
 -- Toggle between relative/absolute line numbers
@@ -146,3 +154,36 @@ vim.api.nvim_create_autocmd('LspAttach', {
 --     end
 --   end,
 -- })
+
+-- Python auto cmd
+local pylsp_group = vim.api.nvim_create_augroup('PylspAutoStart', { clear = true })
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'python',
+  group = pylsp_group,
+  callback = function()
+    if vim.lsp.get_active_clients({ name = 'pylsp' })[1] then
+      return
+    end
+
+    local root_files = {
+      'pyproject.toml',
+      'setup.py',
+      'setup.cfg',
+      'requirements.txt',
+      '.git',
+    }
+    local root = vim.fs.find(root_files, { upward = true })[1]
+    local root_dir = root and vim.fs.dirname(root) or vim.loop.cwd()
+
+    vim.lsp.start {
+      name = 'pylsp',
+      cmd = { 'pylsp' },
+      root_dir = root_dir,
+      capabilities = require('user.lsp').make_client_capabilities(),
+      on_attach = function(client, bufnr)
+        vim.notify('Pylsp attached to buffer ' .. bufnr)
+      end,
+    }
+  end,
+})

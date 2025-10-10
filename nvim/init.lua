@@ -21,6 +21,8 @@ opt.showmatch = true -- Highlight matching parentheses, etc
 opt.incsearch = true
 opt.hlsearch = true
 
+opt.clipboard = "unnamedplus"
+
 opt.spell = true
 opt.spelllang = 'en'
 
